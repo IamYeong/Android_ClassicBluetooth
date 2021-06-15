@@ -139,11 +139,17 @@ public class RxTxThread {
 
                                 } else if (b == 83) {
 
+                                    listener.onStartReadData();
+
+                                    /*
+
                                     if (isSignalGet) {
 
                                         listener.onStartReadData();
                                     }
 
+
+                                     */
 
                                 } else if (b == 2) {
                                     isSignalGet = true;

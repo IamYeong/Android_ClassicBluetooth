@@ -5,10 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +31,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     private Handler handler;
     private Thread chartThread;
     private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate;
+    private FrameLayout frameLayout;
 
     private ImageView img_signal;
 
@@ -49,6 +53,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
     private RxTxThread txRxThread;
 
+    private Paint paint;
+    private Path path;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,6 +65,8 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         tv_humidity = findViewById(R.id.tv_humidity_fvc);
         tv_pressure = findViewById(R.id.tv_pressure_fvc);
         tv_rotate = findViewById(R.id.tv_rotate_fvc);
+
+        frameLayout = findViewById(R.id.frame_connection);
 
         img_signal = findViewById(R.id.img_sgnal_connection);
 
@@ -146,6 +155,34 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
     }
 
+    private void initViewChart(float initX, float initY) {
+        path = new Path();
+        paint = new Paint();
+
+        path.moveTo(initX, initY);
+
+
+    }
+
+    private void addPath(String value, int count) {
+
+        float x = (float) Integer.parseInt(value);
+        float y = (float) count;
+
+
+        //1. 직전값 저장
+        //2. 변화량 측정
+        //3. 유효한 값 확인
+        //4. 좌표변환
+
+        path.lineTo(x, y);
+        LineView line = new LineView(ConnectionActivity.this, paint, path);
+
+        frameLayout.removeAllViews();
+        frameLayout.addView(line);
+
+    }
+
     private void initChart() {
 
         //여기서 미리 속성 반영할 것
@@ -213,8 +250,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     @Override
     public void onStartReadData() {
 
-        createChart();
         img_signal.setBackgroundColor(Color.GREEN);
+        createChart();
+
 
     }
 

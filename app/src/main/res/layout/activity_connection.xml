@@ -58,6 +58,7 @@
         />
 
     <FrameLayout
+        android:id="@+id/frame_connection"
         android:layout_width="200dp"
         android:layout_height="200dp"
 
