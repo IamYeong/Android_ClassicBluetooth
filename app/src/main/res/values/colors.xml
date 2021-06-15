@@ -7,4 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="white_dark">#ffeee6</color>
+    <color name="theme_color">#FF8953</color>
+    <color name="theme_color_dark">#f74e00</color>
+
+    <!--33은 투명도 16진수 -->
+    <color name="loading_color">#33000000</color>
+
 </resources>

@@ -1,3 +1,32 @@
 <resources>
     <string name="app_name">ClassicBluetoothMaster</string>
+
+    <string name="bluetooth">블루투스</string>
+
+    <string name="activation">블루투스 활성화</string>
+    <string name="deactivation">블루투스 비활성화</string>
+    <string name="scan">저전력 장치 스캔하기</string>
+    <string name="mac_connect">맥주소로 연결하기</string>
+
+    <string name="device_list">장치 목록</string>
+    <string name="scanning">저전력 장치 스캔 중..</string>
+    <string name="common_scanning">장치 스캔 중..</string>
+    <string name="common_scan">일반 모드로 스캔</string>
+    <string name="stop_scanning">스캔 중지</string>
+
+    <string name="sign_in">로그인</string>
+    <string name="sign_up">신규등록</string>
+
+    <string name="sign_up_intro">환영합니다! \n신규가입으로 건강기록을 관리하세요! </string>
+    <string name="sign_in_intro">안녕하세요! \n오늘도 최선을 다해 도와드릴게요!</string>
+
+    <string name="lung_analysis">폐기능 측정</string>
+    <string name="respiration_analysis">호흡 근력 측정</string>
+    <string name="result_data">결과 데이터</string>
+
+    <string name="test_device_name">DeviceName</string>
+    <string name="test_device_id">DeviceId</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>
