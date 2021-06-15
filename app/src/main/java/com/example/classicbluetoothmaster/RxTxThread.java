@@ -8,6 +8,8 @@ import java.io.OutputStream;
 
 public class RxTxThread {
 
+    private final String TR_ACTION_START = "S";
+
     private Thread readThread, writeThread;
 
     private BluetoothDevice device;
@@ -15,6 +17,9 @@ public class RxTxThread {
     private OutputStream outputStream;
     private BluetoothConnectManager connectManager;
     private OnThreadListener listener;
+
+    private boolean isSignalGet = false;
+    private boolean isEndedSignalGet = false;
 
     private StringBuilder thermometer;
     private StringBuilder humidity;
@@ -132,7 +137,25 @@ public class RxTxThread {
 
                                     }
 
+                                } else if (b == 83) {
+
+                                    if (isSignalGet) {
+
+                                        listener.onStartReadData();
+                                    }
+
+
+                                } else if (b == 2) {
+                                    isSignalGet = true;
+                                } else if (b == 3) {
+                                    isEndedSignalGet = true;
+                                } else if (b == 69) {
+                                    if (isEndedSignalGet) {
+                                        listener.onEndReadData();
+                                    }
                                 }
+
+
                             }
 
 

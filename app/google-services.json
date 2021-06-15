@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "42528547154",
+    "project_id": "myprojects-b98be",
+    "storage_bucket": "myprojects-b98be.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:42528547154:android:7eddd6277bef1fda9d5a8b",
+        "android_client_info": {
+          "package_name": "com.example.classicbluetoothmaster"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "42528547154-8a0c02v03fjp2dq43octcb2p3kt6dsjj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIvetIV6wE_PnAYUaQFxDKoRYibxoTAL8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "42528547154-8a0c02v03fjp2dq43octcb2p3kt6dsjj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:42528547154:android:a9802ccf91cdec809d5a8b",
+        "android_client_info": {
+          "package_name": "com.iamyeong.trproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "42528547154-8a0c02v03fjp2dq43octcb2p3kt6dsjj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIvetIV6wE_PnAYUaQFxDKoRYibxoTAL8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "42528547154-8a0c02v03fjp2dq43octcb2p3kt6dsjj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

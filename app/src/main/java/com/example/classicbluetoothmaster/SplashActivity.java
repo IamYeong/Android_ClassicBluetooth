@@ -41,7 +41,37 @@ public class SplashActivity extends AppCompatActivity {
     private boolean findDevice = false;
 
     //Classic scanner field
-    private BroadcastReceiver receiver;
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String action = intent.getAction();
+
+            tv_log.append("\n onReceive()");
+            tv_log.append("\n " + action);
+
+            if (action.equals(BluetoothDevice.ACTION_FOUND)) {
+
+                device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                String name = device.getName();
+                tv_log.append("\n" + name + "\n" + device.getAddress());
+
+                if (device.getAddress().equals(NEW_MAC_ADDRESS)) {
+
+                    Toast.makeText(context, name + "과 연결", Toast.LENGTH_SHORT).show();
+
+                    signInIntent = new Intent(SplashActivity.this, MainActivity.class);
+                    signInIntent.putExtra("DEVICE", device);
+
+                    btn_signIn.setVisibility(View.VISIBLE);
+                    btn_signUp.setVisibility(View.VISIBLE);
+
+                }
+
+            }
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +93,8 @@ public class SplashActivity extends AppCompatActivity {
         btn_restart = findViewById(R.id.btn_rescan);
         btn_restart.setVisibility(View.INVISIBLE);
 
+
+
         Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(intent, BT_REQUEST_ENABLE);
 
@@ -76,49 +108,37 @@ public class SplashActivity extends AppCompatActivity {
         btn_signUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(signUpIntent);
+                startActivity(signInIntent);
             }
         });
 
         btn_restart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                deviceScan();
+                if (!scanning) {
+
+                    scanning = true;
+                    deviceScan();
+                }
             }
         });
 
 
-        receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
 
-                if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND)) {
 
-                    device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                    String name = device.getName();
-                    tv_log.append("\n" + name);
-
-                    if (device.getAddress().equals(NEW_MAC_ADDRESS)) {
-
-                        Toast.makeText(context, name + "과 연결", Toast.LENGTH_SHORT).show();
-
-                        signInIntent = new Intent(SplashActivity.this, MainActivity.class);
-                        signInIntent.putExtra("DEVICE", device);
-                        startActivity(signInIntent);
-
-                    }
-
-                }
-
-            }
-        };
-
-        intentFilter = new IntentFilter();
-        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
+        intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
 
         registerReceiver(receiver, intentFilter);
 
-        deviceScan();
+        /*
+        if (!scanning) {
+
+            scanning = true;
+            deviceScan();
+        }
+
+         */
+
 
     }
 
@@ -126,37 +146,33 @@ public class SplashActivity extends AppCompatActivity {
 
     private void deviceScan() {
 
+        tv_log.append("\n deviceScan()");
+
         if (btn_restart.getVisibility() == View.VISIBLE) {
             btn_restart.setVisibility(View.INVISIBLE);
         }
 
         final Handler handler = new Handler();
 
+        classicScanner = new BluetoothClassicScanner(this);
 
-        Thread thread = new Thread() {
-
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                super.run();
 
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        if (!findDevice) {
-                            classicScanner.stopScan();
-                            btn_restart.setVisibility(View.VISIBLE);
-                        }
-
-                    }
-                }, DELAY_TIME);
-
-                classicScanner.startScan();
+                if (!findDevice) {
+                    scanning = false;
+                    classicScanner.stopScan();
+                    btn_restart.setVisibility(View.VISIBLE);
+                    tv_log.append("\n stopScan()");
+                }
 
             }
-        };
+        }, DELAY_TIME);
 
-        thread.start();
+        classicScanner.startScan();
+
+
 
     }
 
@@ -185,5 +201,13 @@ public class SplashActivity extends AppCompatActivity {
 
         }
 
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        unregisterReceiver(receiver);
     }
 }

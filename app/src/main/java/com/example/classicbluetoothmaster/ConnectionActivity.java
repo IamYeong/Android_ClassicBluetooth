@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -26,6 +28,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     private Handler handler;
     private Thread chartThread;
     private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate;
+
+    private ImageView img_signal;
+
     private BluetoothConnectManager manager;
     private Button btn_fvc;
     private InputStream inputStream;
@@ -54,6 +59,8 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         tv_pressure = findViewById(R.id.tv_pressure_fvc);
         tv_rotate = findViewById(R.id.tv_rotate_fvc);
 
+        img_signal = findViewById(R.id.img_sgnal_connection);
+
         lineChart = findViewById(R.id.line_chart_fvc);
 
         btn_fvc = findViewById(R.id.btn_fvc);
@@ -64,11 +71,20 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         handler = new Handler();
         txRxThread = new RxTxThread(handler, device, this);
 
+        txRxThread.readStart();
+
+        btn_fvc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                txRxThread.writeStart();
+            }
+        });
+
     }
 
     private void createChart() {
 
-        final Handler handler = new Handler();
+        //final Handler handler = new Handler();
         chartThread = new Thread() {
             @Override
             public void run() {
@@ -191,6 +207,22 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         if (isChartInit) {
             addEntry(this.rotate, count);
         }
+
+    }
+
+    @Override
+    public void onStartReadData() {
+
+        createChart();
+        img_signal.setBackgroundColor(Color.GREEN);
+
+    }
+
+    @Override
+    public void onEndReadData() {
+
+        txRxThread.stopReadThread();
+        img_signal.setBackgroundColor(Color.RED);
 
     }
 }

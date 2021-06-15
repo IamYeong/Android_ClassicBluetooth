@@ -16,11 +16,6 @@ public class BluetoothClassicScanner {
         this.context = (Activity) activityContext;
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        if (bluetoothAdapter != null) {
-
-            startScan();
-
-        }
     }
 
     public void stopScan() {
