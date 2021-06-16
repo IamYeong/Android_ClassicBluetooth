@@ -32,8 +32,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     private Handler handler;
     private Thread chartThread;
     private ConnectThread connectThread;
+    private AcceptThread acceptThread;
 
-    private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate, tv_log;
+    private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate, tv_log, tv_connecting;
     private FrameLayout frameLayout;
     private Button btn_connect;
 
@@ -68,6 +69,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         tv_humidity = findViewById(R.id.tv_humidity_fvc);
         tv_pressure = findViewById(R.id.tv_pressure_fvc);
         tv_rotate = findViewById(R.id.tv_rotate_fvc);
+        tv_connecting = findViewById(R.id.tv_connecting);
 
         //로그 텍스트
         tv_log = findViewById(R.id.tv_log_connection);
@@ -88,6 +90,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         intent = getIntent();
         device = intent.getParcelableExtra("DEVICE");
 
+        //acceptSocket();
         connectSocket();
 
         btn_fvc.setOnClickListener(new View.OnClickListener() {
@@ -101,6 +104,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             @Override
             public void onClick(View v) {
 
+                //acceptSocket();
                 connectSocket();
             }
         });
@@ -109,6 +113,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
     private void connectSocket() {
 
+        btn_connect.setVisibility(View.INVISIBLE);
+        img_signal.setBackgroundColor(Color.WHITE);
+        tv_log.setVisibility(View.VISIBLE);
         //메인스레드에서 생성한 디폴트 생성자 핸들러를 새로 생성하여 할당.
         handler = new Handler();
 
@@ -116,6 +123,23 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         connectThread.start();
 
     }
+
+    private void acceptSocket() {
+        btn_connect.setVisibility(View.INVISIBLE);
+        img_signal.setBackgroundColor(Color.WHITE);
+        tv_log.setVisibility(View.VISIBLE);
+
+        handler = new Handler();
+
+        connectThread = new ConnectThread(device, this, handler);
+        connectThread.start();
+
+        //acceptThread = new AcceptThread(device, this, handler);
+        //acceptThread.start();
+
+
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -243,11 +267,15 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         lineDataSet.setLineWidth(1f);
 
         isChartInit = true;
+        tv_log.append("\n" + "isChartInit : " + isChartInit);
 
     }
 
     @Override
     public void onThread(StringBuilder thermometer, StringBuilder humidity, StringBuilder pressure, StringBuilder rotate) {
+
+        tv_log.append("\n" + "onThread()");
+        tv_log.append("\n" + thermometer + ", " + humidity + ", " + pressure + ", " + rotate);
 
         this.thermometer = thermometer.toString();
         this.humidity = humidity.toString();
@@ -259,8 +287,10 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         tv_pressure.setText(pressure);
         tv_rotate.setText(rotate);
 
-        if (isChartInit) {
+        if (isChartInit && rotate != null) {
+            tv_log.append("\n" + "addEntry()");
             addEntry(this.rotate, count);
+
         }
 
     }
@@ -289,7 +319,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
         if (log.equals("SUCCESS")) {
 
+            tv_connecting.setVisibility(View.INVISIBLE);
             BluetoothSocket socket = connectThread.getSocket();
+            tv_log.append("\n" + socket.toString());
 
             handler = new Handler();
             RxTxThread thread = new RxTxThread(handler, this, socket);
@@ -302,18 +334,22 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             tv_log.append("\n" + log);
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
+            tv_connecting.setVisibility(View.INVISIBLE);
         } else if (log.equals(ConnectThread.SOCKET_CONNECT_FAIL)) {
             tv_log.append("\n" + log);
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
+            tv_connecting.setVisibility(View.INVISIBLE);
         } else if (log.equals(ConnectThread.SOCKET_RETURN_FAIL)) {
             tv_log.append("\n" + log);
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
+            tv_connecting.setVisibility(View.INVISIBLE);
         } else if (log.equals(ConnectThread.SOCKET_CLOSE_FAIL)) {
             tv_log.append("\n" + log);
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
+            tv_connecting.setVisibility(View.INVISIBLE);
         } else {
             tv_log.append("\n" + log);
         }

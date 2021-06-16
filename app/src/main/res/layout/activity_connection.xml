@@ -84,6 +84,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
+            android:textColor="@color/black"
             />
 
     </androidx.core.widget.NestedScrollView>
@@ -117,13 +118,14 @@
 
     <ImageView
         android:id="@+id/img_sgnal_connection"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"
 
-        android:src="@drawable/signal_circle"
+        android:background="@color/white"
+
         />
 
     <android.widget.Button
@@ -141,6 +143,7 @@
         />
 
     <TextView
+        android:id="@+id/tv_connecting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 

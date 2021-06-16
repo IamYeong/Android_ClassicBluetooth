@@ -1,20 +1,25 @@
 package com.example.classicbluetoothmaster;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 public class ConnectThread extends Thread {
 
     private BluetoothDevice device;
+    private BluetoothServerSocket serverSocket;
     private BluetoothSocket socket;
     private OnLogAddedListener listener;
     private Handler handler;
+
+    private boolean isConnectingSuccess = true;
 
     public static String SOCKET_CREATE_FAIL = "tr.iamyeong.socket_create_fail";
     public static String SOCKET_CONNECT_FAIL = "tr.iamyeong.socket_connect_fail";
@@ -26,12 +31,14 @@ public class ConnectThread extends Thread {
 
     //Constuct & getSocket
     public ConnectThread(BluetoothDevice device, OnLogAddedListener listener, Handler handler) {
+
+        this.handler = handler;
         this.device = device;
         BluetoothSocket mSocket = null;
         this.listener = listener;
 
         try {
-            mSocket = device.createRfcommSocketToServiceRecord(TR_UUID);
+            mSocket = device.createInsecureRfcommSocketToServiceRecord(TR_UUID);
         } catch(IOException e) {
             //연결 실패
             this.listener.onLogAdded(SOCKET_CREATE_FAIL);
@@ -51,6 +58,8 @@ public class ConnectThread extends Thread {
 
         } catch(IOException e) {
 
+            isConnectingSuccess = false;
+
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -58,18 +67,16 @@ public class ConnectThread extends Thread {
                 }
             });
 
-
         }
 
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                listener.onLogAdded("SUCCESS");
-            }
-        });
-
-        //통신
-
+        if (isConnectingSuccess) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onLogAdded("SUCCESS");
+                }
+            });
+        }
 
 
     }
@@ -97,5 +104,15 @@ public class ConnectThread extends Thread {
 
         return null;
     }
+
+    /*
+    private BluetoothSocket createSocket() {
+
+        Method m = device.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", UUID.class);
+        return (BluetoothSocket) m.invoke(device);
+
+    }
+
+     */
 
 }

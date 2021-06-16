@@ -106,6 +106,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
             @Override
             public void onClick(View v) {
                 startActivity(signInIntent);
+                finish();
             }
         });
 
@@ -113,6 +114,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
             @Override
             public void onClick(View v) {
                 startActivity(signInIntent);
+                finish();
             }
         });
 
@@ -213,6 +215,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
         super.onDestroy();
 
         unregisterReceiver(receiver);
+        classicScanner.stopScan();
     }
 
     @Override

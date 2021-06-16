@@ -18,6 +18,7 @@ public class RxTxThread {
     private InputStream inputStream;
     private OutputStream outputStream;
     private OnThreadListener listener;
+    private OnLogAddedListener logAddedListener;
 
     private boolean isSignalGet = false;
     private boolean isEndedSignalGet = false;
@@ -36,6 +37,7 @@ public class RxTxThread {
 
         this.socket = socket;
         this.listener = listener;
+        this.logAddedListener = (OnLogAddedListener) listener;
         this.handler = handler;
         connectInitialize();
     }
@@ -45,6 +47,9 @@ public class RxTxThread {
         try {
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
+
+            logAddedListener.onLogAdded(inputStream + ", " + outputStream);
+
         } catch(IOException e) {
 
         }
@@ -68,6 +73,8 @@ public class RxTxThread {
 
 
     public void readStart() {
+
+        logAddedListener.onLogAdded("readStart()");
 
         readThread = new Thread() {
 
@@ -196,22 +203,12 @@ public class RxTxThread {
                 super.run();
 
                 try {
-
-                    while (!isInterrupted()) {
-
-                        if (outputStream != null) {
-
-                            Thread.sleep(1000);
-                            outputStream.write(WRITE_DATA);
-
-                        } else {
-                            connectInitialize();
-                        }
-
+                    if (outputStream == null) {
+                        connectInitialize();
                     }
 
-                } catch(InterruptedException e) {
-                    currentThread().interrupt();
+                    outputStream.write(WRITE_DATA);
+
                 } catch(IOException e) {
                     listener.onEndReadData();
                 }
