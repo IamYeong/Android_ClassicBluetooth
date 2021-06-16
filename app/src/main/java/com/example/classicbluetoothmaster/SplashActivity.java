@@ -16,7 +16,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SplashActivity extends AppCompatActivity {
+import java.util.Set;
+
+public class SplashActivity extends AppCompatActivity implements OnDeviceFindListener {
 
     private TextView tv_log;
     private Button btn_signIn, btn_signUp, btn_restart;
@@ -154,7 +156,7 @@ public class SplashActivity extends AppCompatActivity {
 
         final Handler handler = new Handler();
 
-        classicScanner = new BluetoothClassicScanner(this);
+        classicScanner = new BluetoothClassicScanner(SplashActivity.this);
 
         handler.postDelayed(new Runnable() {
             @Override
@@ -209,5 +211,18 @@ public class SplashActivity extends AppCompatActivity {
         super.onDestroy();
 
         unregisterReceiver(receiver);
+    }
+
+    @Override
+    public void onDeviceFind(BluetoothDevice device) {
+
+    }
+
+    @Override
+    public void onDeviceFineFailed() {
+
+        //Bonded device를 검색한 후에는 startDescovery() 를 통해 BroadcastReceiver 가 동작하므로,
+        //해당 콜백은 이용되지 않음
+
     }
 }

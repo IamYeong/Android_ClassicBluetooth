@@ -1,8 +1,10 @@
 package com.example.classicbluetoothmaster;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -12,10 +14,9 @@ public class RxTxThread {
 
     private Thread readThread, writeThread;
 
-    private BluetoothDevice device;
+    private BluetoothSocket socket;
     private InputStream inputStream;
     private OutputStream outputStream;
-    private BluetoothConnectManager connectManager;
     private OnThreadListener listener;
 
     private boolean isSignalGet = false;
@@ -31,18 +32,22 @@ public class RxTxThread {
     private final int DATA_NUMBER = 4;
     private final byte WRITE_DATA = 66;
 
-    public RxTxThread(Handler handler, BluetoothDevice device, OnThreadListener listener) {
-        this.device = device;
+    public RxTxThread(Handler handler, OnThreadListener listener, BluetoothSocket socket) {
+
+        this.socket = socket;
         this.listener = listener;
         this.handler = handler;
         connectInitialize();
     }
 
     private void connectInitialize() {
-        connectManager = new BluetoothConnectManager();
-        connectManager.connecting(device);
-        inputStream = connectManager.getInputStream();
-        outputStream = connectManager.getOutputStream();
+
+        try {
+            inputStream = socket.getInputStream();
+            outputStream = socket.getOutputStream();
+        } catch(IOException e) {
+
+        }
     }
 
     public void stopReadThread() {
@@ -220,17 +225,6 @@ public class RxTxThread {
     private String asciiToString(Byte b) {
 
         switch (b) {
-
-            case 60 :
-                return "<";
-
-
-            case 62 :
-                return ">";
-
-            case 58 :
-                return ":";
-
 
             case 48 :
                 return "0";

@@ -96,4 +96,31 @@
         android:src="@drawable/signal_circle"
         />
 
+    <android.widget.Button
+        android:id="@+id/btn_connection"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+
+        android:background="@drawable/button_theme"
+
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/img_sgnal_connection"
+
+        android:textColor="@color/white"
+        android:text="연결"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:textColor="@color/black"
+
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/img_sgnal_connection"
+
+        android:text="연결 중..."
+        android:textSize="20dp"
+        />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

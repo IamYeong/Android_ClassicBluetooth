@@ -3,6 +3,7 @@ package com.example.classicbluetoothmaster;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -26,16 +27,17 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConnectionActivity extends AppCompatActivity implements OnThreadListener {
+public class ConnectionActivity extends AppCompatActivity implements OnThreadListener, OnLogAddedListener {
 
     private Handler handler;
     private Thread chartThread;
+    private ConnectThread connectThread;
+
     private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate;
     private FrameLayout frameLayout;
+    private Button btn_connect;
 
     private ImageView img_signal;
-
-    private BluetoothConnectManager manager;
     private Button btn_fvc;
     private InputStream inputStream;
     private boolean isChartInit = false;
@@ -68,19 +70,19 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
         frameLayout = findViewById(R.id.frame_connection);
 
+        btn_connect = findViewById(R.id.btn_connection);
+        btn_connect.setVisibility(View.INVISIBLE);
+
         img_signal = findViewById(R.id.img_sgnal_connection);
-
         lineChart = findViewById(R.id.line_chart_fvc);
-
         btn_fvc = findViewById(R.id.btn_fvc);
 
         intent = getIntent();
         device = intent.getParcelableExtra("DEVICE");
 
         handler = new Handler();
-        txRxThread = new RxTxThread(handler, device, this);
 
-        txRxThread.readStart();
+        connectSocket();
 
         btn_fvc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -89,6 +91,35 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             }
         });
 
+        btn_connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                connectSocket();
+            }
+        });
+
+    }//onCreate
+
+    private void connectSocket() {
+        connectThread = new ConnectThread(device, this);
+        connectThread.start();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     private void createChart() {
@@ -99,29 +130,6 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             public void run() {
 
                 initChart();
-
-                /*
-                while(true) {
-
-                    try {
-                        Thread.sleep(100);
-                    } catch (Exception e) { }
-
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            if (rotate != null && !rotate.equals("")) {
-                                addEntry(rotate, count);
-                                count++;
-                            }
-
-                        }
-                    });
-
-                }
-
-                 */
 
             }
         };
@@ -261,6 +269,27 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
         txRxThread.stopReadThread();
         img_signal.setBackgroundColor(Color.RED);
+
+    }
+
+    @Override
+    public void onLogAdded(String log) {
+
+        if (log.equals("실패")) {
+            //연결 실패했을 경우.
+            btn_connect.setVisibility(View.VISIBLE);
+
+        }
+
+        //성공해서 바로 통신해야 하는 경우
+        if (log.equals("SUCCESS")) {
+
+            BluetoothSocket socket = connectThread.getSocket();
+
+            RxTxThread thread = new RxTxThread(handler, this, socket);
+            thread.readStart();
+
+        }
 
     }
 }
