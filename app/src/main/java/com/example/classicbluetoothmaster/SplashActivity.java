@@ -68,6 +68,8 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
                     btn_signIn.setVisibility(View.VISIBLE);
                     btn_signUp.setVisibility(View.VISIBLE);
 
+                    classicScanner.stopScan();
+
                 }
 
             }
@@ -215,6 +217,16 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
 
     @Override
     public void onDeviceFind(BluetoothDevice device) {
+
+        Toast.makeText(this, device.getName() + " 과 연결", Toast.LENGTH_SHORT).show();
+
+        signInIntent = new Intent(SplashActivity.this, MainActivity.class);
+        signInIntent.putExtra("DEVICE", device);
+
+        btn_signIn.setVisibility(View.VISIBLE);
+        btn_signUp.setVisibility(View.VISIBLE);
+
+        classicScanner.stopScan();
 
     }
 

@@ -19,6 +19,10 @@
 
         android:layout_margin="20dp"
         android:textColor="@color/theme_color"
+
+        android:text="0"
+        android:textSize="30dp"
+
         />
 
     <TextView
@@ -31,6 +35,9 @@
 
         android:layout_margin="20dp"
         android:textColor="@color/theme_color"
+
+        android:text="0"
+        android:textSize="30dp"
         />
 
     <TextView
@@ -43,6 +50,9 @@
 
         android:layout_margin="20dp"
         android:textColor="@color/theme_color"
+
+        android:text="0"
+        android:textSize="30dp"
         />
 
     <TextView
@@ -55,8 +65,28 @@
         android:layout_margin="20dp"
 
         android:textColor="@color/theme_color"
+
+        android:text="0"
+        android:textSize="30dp"
         />
 
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+
+        app:layout_constraintTop_toBottomOf="@id/btn_connection"
+        app:layout_constraintBottom_toTopOf="@id/frame_connection"
+
+        >
+
+        <TextView
+            android:id="@+id/tv_log_connection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            />
+
+    </androidx.core.widget.NestedScrollView>
     <FrameLayout
         android:id="@+id/frame_connection"
         android:layout_width="200dp"

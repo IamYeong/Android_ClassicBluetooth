@@ -82,7 +82,7 @@ public class RxTxThread {
                         if (inputStream.available() >= 0) {
 
                             //n회차 loop때 length 10 이하의 배열을 InputStream에서 읽어온다.
-                            byte[] bytes = new byte[10];
+                            byte[] bytes = new byte[1024];
                             inputStream.read(bytes);
 
                             //InputStream에서 읽어온 byte 배열을 다시 한 번 loop하며
@@ -210,8 +210,10 @@ public class RxTxThread {
 
                     }
 
-                } catch(Exception e) {
+                } catch(InterruptedException e) {
                     currentThread().interrupt();
+                } catch(IOException e) {
+                    listener.onEndReadData();
                 }
 
             }

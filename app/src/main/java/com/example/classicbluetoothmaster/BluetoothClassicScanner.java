@@ -9,16 +9,12 @@ import java.util.Set;
 
 public class BluetoothClassicScanner {
 
-    private final int REQUEST_ENABLE_BT = 1;
-
     private BluetoothAdapter bluetoothAdapter;
     private OnDeviceFindListener listener;
     private Set<BluetoothDevice> bondedDevices;
 
     private final String DEVICE_ADDRESS = "98:D3:21:F4:A2:1B";
     private final String NEW_MAC_ADDRESS = "98:D3:21:F4:93:5C";
-
-    private final String DEVICE_NAME = "HC-06";
 
     private boolean isDeviceFind = false;
 
@@ -51,6 +47,7 @@ public class BluetoothClassicScanner {
 
                 listener.onDeviceFind(device);
                 isDeviceFind = true;
+                bluetoothAdapter.cancelDiscovery();
 
             }
 
@@ -60,8 +57,6 @@ public class BluetoothClassicScanner {
         if (!isDeviceFind) {
             bluetoothAdapter.startDiscovery();
         }
-
-
 
     }
 

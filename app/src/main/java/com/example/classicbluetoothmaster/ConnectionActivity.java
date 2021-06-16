@@ -33,7 +33,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     private Thread chartThread;
     private ConnectThread connectThread;
 
-    private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate;
+    private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate, tv_log;
     private FrameLayout frameLayout;
     private Button btn_connect;
 
@@ -63,24 +63,30 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_connection);
 
+        //받는 데이터 텍스트
         tv_thermo = findViewById(R.id.tv_thermometer_fvc);
         tv_humidity = findViewById(R.id.tv_humidity_fvc);
         tv_pressure = findViewById(R.id.tv_pressure_fvc);
         tv_rotate = findViewById(R.id.tv_rotate_fvc);
 
+        //로그 텍스트
+        tv_log = findViewById(R.id.tv_log_connection);
+        tv_log.setText("log : ");
+
         frameLayout = findViewById(R.id.frame_connection);
 
+        //연결 버튼
         btn_connect = findViewById(R.id.btn_connection);
         btn_connect.setVisibility(View.INVISIBLE);
 
+        //차트, 점등 이미지
         img_signal = findViewById(R.id.img_sgnal_connection);
         lineChart = findViewById(R.id.line_chart_fvc);
         btn_fvc = findViewById(R.id.btn_fvc);
 
+        //디바이스 받아오기
         intent = getIntent();
         device = intent.getParcelableExtra("DEVICE");
-
-        handler = new Handler();
 
         connectSocket();
 
@@ -102,7 +108,11 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     }//onCreate
 
     private void connectSocket() {
-        connectThread = new ConnectThread(device, this);
+
+        //메인스레드에서 생성한 디폴트 생성자 핸들러를 새로 생성하여 할당.
+        handler = new Handler();
+
+        connectThread = new ConnectThread(device, this, handler);
         connectThread.start();
 
     }
@@ -270,26 +280,46 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         txRxThread.stopReadThread();
         img_signal.setBackgroundColor(Color.RED);
 
+        btn_connect.setVisibility(View.VISIBLE);
+
     }
 
     @Override
     public void onLogAdded(String log) {
 
-        if (log.equals("실패")) {
-            //연결 실패했을 경우.
-            btn_connect.setVisibility(View.VISIBLE);
-
-        }
-
-        //성공해서 바로 통신해야 하는 경우
         if (log.equals("SUCCESS")) {
 
             BluetoothSocket socket = connectThread.getSocket();
 
+            handler = new Handler();
             RxTxThread thread = new RxTxThread(handler, this, socket);
             thread.readStart();
 
         }
+
+        if (log.equals(ConnectThread.SOCKET_CREATE_FAIL)) {
+            //연결 실패했을 경우.\
+            tv_log.append("\n" + log);
+            btn_connect.setVisibility(View.VISIBLE);
+            img_signal.setBackgroundColor(Color.RED);
+        } else if (log.equals(ConnectThread.SOCKET_CONNECT_FAIL)) {
+            tv_log.append("\n" + log);
+            btn_connect.setVisibility(View.VISIBLE);
+            img_signal.setBackgroundColor(Color.RED);
+        } else if (log.equals(ConnectThread.SOCKET_RETURN_FAIL)) {
+            tv_log.append("\n" + log);
+            btn_connect.setVisibility(View.VISIBLE);
+            img_signal.setBackgroundColor(Color.RED);
+        } else if (log.equals(ConnectThread.SOCKET_CLOSE_FAIL)) {
+            tv_log.append("\n" + log);
+            btn_connect.setVisibility(View.VISIBLE);
+            img_signal.setBackgroundColor(Color.RED);
+        } else {
+            tv_log.append("\n" + log);
+        }
+
+        //성공해서 바로 통신해야 하는 경우
+
 
     }
 }
