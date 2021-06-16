@@ -32,7 +32,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     private Handler handler;
     private Thread chartThread;
     private ConnectThread connectThread;
-    private AcceptThread acceptThread;
+    //private AcceptThread acceptThread;
 
     private TextView tv_thermo, tv_humidity, tv_pressure, tv_rotate, tv_log, tv_connecting;
     private FrameLayout frameLayout;
@@ -40,7 +40,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
     private ImageView img_signal;
     private Button btn_fvc;
-    private InputStream inputStream;
+    //private InputStream inputStream;
     private boolean isChartInit = false;
     private boolean isStart = false;
 
@@ -347,6 +347,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             tv_log.append("\n readStart()");
             createChart();
             tv_log.append("\n createChart()");
+            
+            //준비완료되면 데이터 보낼 수 있도록
+            //thread.writeStart();
 
         }
 
@@ -356,21 +359,25 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
             tv_connecting.setVisibility(View.INVISIBLE);
+
         } else if (log.equals(ConnectThread.SOCKET_CONNECT_FAIL)) {
             tv_log.append("\n" + log);
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
             tv_connecting.setVisibility(View.INVISIBLE);
+
         } else if (log.equals(ConnectThread.SOCKET_RETURN_FAIL)) {
             tv_log.append("\n" + log);
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
             tv_connecting.setVisibility(View.INVISIBLE);
+
         } else if (log.equals(ConnectThread.SOCKET_CLOSE_FAIL)) {
             tv_log.append("\n" + log);
             btn_connect.setVisibility(View.VISIBLE);
             img_signal.setBackgroundColor(Color.RED);
             tv_connecting.setVisibility(View.INVISIBLE);
+
         } else {
             tv_log.append("\n" + log);
         }

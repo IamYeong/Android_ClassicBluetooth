@@ -84,90 +84,94 @@ public class RxTxThread {
 
                 try {
 
+                    //Thread 가 살아있다면 일단 loop실행
                     while (!isInterrupted()) {
 
-                        if (true) {
-
-                            //n회차 loop때 length 10 이하의 배열을 InputStream에서 읽어온다.
-                            byte[] bytes = new byte[1024];
+                        //1Byte 를 Serial 통신으로 받더라도 아래 로직을 수행할 수 있어야 함.
+                            byte[] bytes = new byte[1];
                             inputStream.read(bytes);
 
-                            //InputStream에서 읽어온 byte 배열을 다시 한 번 loop하며
-                            for (int i = 0; i < bytes.length; i++) {
 
-                                //i번째 byte가 아래에 해당할 때 특정 동작을 수행한다.
-                                byte b = bytes[i];
-
-                                switch (b) {
-
-                                    case 0x02 :
-                                        if (!isSignalGet) {
-                                            isSignalGet = true;
-                                            listener.onStartReadData();
-                                        }
-                                        break;
-
-                                    case 0x3C :
-
-                                        thermometer = new StringBuilder("");
-                                        humidity = new StringBuilder("");
-                                        pressure = new StringBuilder("");
-                                        rotate = new StringBuilder("");
-                                        colonCount = 0;
-
-                                        break;
+                            //Default value is 0!
+                            if (bytes[0] != 0) {
 
 
-                                    case 0x3E :
+                                for (int i = 0; i < bytes.length; i++) {
 
-                                        if (colonCount == DATA_NUMBER) {
-                                            handler.post(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    listener.onThread(thermometer, humidity, pressure, rotate);
-                                                }
-                                            });
+                                    //i번째 byte가 아래에 해당할 때 특정 동작을 수행한다.
+                                    byte b = bytes[i];
 
-                                        } else {
-                                            listener.onThreadOtherValue(thermometer.append(humidity.append(pressure.append(rotate))));
-                                        }
+                                    switch (b) {
 
-                                        break;
-
-                                    case 0x3A :
-                                        colonCount++;
-                                        break;
-
-                                }
-
-                                if (b >= 0x30 && b <= 0x39) {
-
-                                    switch (colonCount) {
-
-                                        case 0:
-                                            thermometer.append(asciiToString(b));
+                                        case 0x02 :
+                                            if (!isSignalGet) {
+                                                isSignalGet = true;
+                                                listener.onStartReadData();
+                                            }
                                             break;
 
-                                        case 1:
-                                            humidity.append(asciiToString(b));
+                                        case 0x3C :
+
+                                            thermometer = new StringBuilder("");
+                                            humidity = new StringBuilder("");
+                                            pressure = new StringBuilder("");
+                                            rotate = new StringBuilder("");
+                                            colonCount = 0;
+
                                             break;
 
-                                        case 2:
-                                            pressure.append(asciiToString(b));
+
+                                        case 0x3E :
+
+                                            if (colonCount == DATA_NUMBER) {
+                                                handler.post(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        listener.onThread(thermometer, humidity, pressure, rotate);
+                                                    }
+                                                });
+
+                                            } else {
+                                                listener.onThreadOtherValue(thermometer.append(humidity.append(pressure.append(rotate))));
+                                            }
+
                                             break;
 
-                                        case 3:
-                                            rotate.append(asciiToString(b));
+                                        case 0x3A :
+                                            colonCount++;
                                             break;
 
                                     }
-                                }
 
+                                    if (b >= 0x30 && b <= 0x39) {
+
+                                        switch (colonCount) {
+
+                                            case 0:
+                                                thermometer.append(asciiToString(b));
+                                                break;
+
+                                            case 1:
+                                                humidity.append(asciiToString(b));
+                                                break;
+
+                                            case 2:
+                                                pressure.append(asciiToString(b));
+                                                break;
+
+                                            case 3:
+                                                rotate.append(asciiToString(b));
+                                                break;
+
+                                        }
+                                    }
+
+                                }
                             }
+                            //InputStream에서 읽어온 byte 배열을 다시 한 번 loop하며
 
                         }
 
-                    }
 
                 } catch(Exception e) {
                     currentThread().interrupt();
