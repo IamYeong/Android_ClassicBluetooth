@@ -9,6 +9,18 @@ import android.os.Handler;
 import java.io.IOException;
 import java.util.UUID;
 
+
+/** BluetoothSocket 은 두 가지 방법으로 얻지만 목적이 다릅니다.
+ *  BluetoothServerSocket 의 accept() 메서드를 이용한다면,
+ *  2대의 '안드로이드' 기기끼리 BT 통신이 필요하다는 의미라서,
+ *  서버역할의 기기가 Server socket 구현, 클라이언트 역할의 기기가
+ *  로컬 socket 을 구현하여 통신을 하는 것입니다.
+ *
+ *  하지만 단순 시리얼통신을 위한 것이라면 BluetoothSocket 하나만 구현하여
+ *  Stream을 얻어 Read, write 통신이 가능합니다.
+ */
+
+
 public class AcceptThread extends Thread {
 
     private BluetoothDevice device;

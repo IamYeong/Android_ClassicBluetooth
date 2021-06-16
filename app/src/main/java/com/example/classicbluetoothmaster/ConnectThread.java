@@ -1,5 +1,6 @@
 package com.example.classicbluetoothmaster;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
@@ -29,22 +30,15 @@ public class ConnectThread extends Thread {
     //Serial communication UUID
     private final UUID TR_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
 
+    private final String MAC_ADDRESS = "98:D3:21:F4:93:5C";
+
     //Constuct & getSocket
     public ConnectThread(BluetoothDevice device, OnLogAddedListener listener, Handler handler) {
 
         this.handler = handler;
         this.device = device;
-        BluetoothSocket mSocket = null;
+        socket = null;
         this.listener = listener;
-
-        try {
-            mSocket = device.createInsecureRfcommSocketToServiceRecord(TR_UUID);
-        } catch(IOException e) {
-            //연결 실패
-            this.listener.onLogAdded(SOCKET_CREATE_FAIL);
-        }
-
-        this.socket = mSocket;
 
     }
 
@@ -53,6 +47,9 @@ public class ConnectThread extends Thread {
         super.run();
 
         try {
+
+            device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(MAC_ADDRESS);
+            socket = device.createInsecureRfcommSocketToServiceRecord(TR_UUID);
 
             socket.connect();
 

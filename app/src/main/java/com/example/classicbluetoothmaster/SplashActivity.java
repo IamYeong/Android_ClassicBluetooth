@@ -60,6 +60,8 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
 
                 if (device.getAddress().equals(NEW_MAC_ADDRESS)) {
 
+                    //device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(NEW_MAC_ADDRESS);
+
                     Toast.makeText(context, name + "과 연결", Toast.LENGTH_SHORT).show();
 
                     signInIntent = new Intent(SplashActivity.this, MainActivity.class);

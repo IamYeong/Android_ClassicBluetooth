@@ -42,6 +42,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     private Button btn_fvc;
     private InputStream inputStream;
     private boolean isChartInit = false;
+    private boolean isStart = false;
 
     private LineChart lineChart;
     private LineDataSet lineDataSet;
@@ -174,11 +175,12 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
     private void addEntry(String y, int x) {
 
+        if (y != null && !y.equals("")) {
 
-        float yValue = (float) Integer.parseInt(y);
-        float xValue = (float) x;
+            float yValue = (float) Integer.parseInt(y);
+            float xValue = (float) x;
 
-        entries.add(new Entry(xValue, yValue));
+            entries.add(new Entry(xValue, yValue));
 
         /*
         if (entries.size() > 500) {
@@ -187,13 +189,14 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
          */
 
-        lineDataSet.notifyDataSetChanged();
-        lineData.notifyDataChanged();
-        lineChart.notifyDataSetChanged();
+            lineDataSet.notifyDataSetChanged();
+            lineData.notifyDataChanged();
+            lineChart.notifyDataSetChanged();
 
-        lineChart.invalidate();
+            lineChart.invalidate();
 
-        count++;
+            count++;
+        }
 
     }
 
@@ -267,40 +270,55 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         lineDataSet.setLineWidth(1f);
 
         isChartInit = true;
-        tv_log.append("\n" + "isChartInit : " + isChartInit);
+
 
     }
 
     @Override
     public void onThread(StringBuilder thermometer, StringBuilder humidity, StringBuilder pressure, StringBuilder rotate) {
 
-        tv_log.append("\n" + "onThread()");
-        tv_log.append("\n" + thermometer + ", " + humidity + ", " + pressure + ", " + rotate);
+        //tv_log.append("\n" + "onThread()");
+        //tv_log.append("\n" + thermometer + ", " + humidity + ", " + pressure + ", " + rotate);
 
-        this.thermometer = thermometer.toString();
-        this.humidity = humidity.toString();
-        this.pressure = pressure.toString();
-        this.rotate = rotate.toString();
+        tv_log.append("\n" + "onThread()" + ", boolean is" + isStart);
 
-        tv_thermo.setText(thermometer);
-        tv_humidity.setText(humidity);
-        tv_pressure.setText(pressure);
-        tv_rotate.setText(rotate);
+        if (isStart) {
 
-        if (isChartInit && rotate != null) {
-            tv_log.append("\n" + "addEntry()");
-            addEntry(this.rotate, count);
+            this.thermometer = thermometer.toString();
+            this.humidity = humidity.toString();
+            this.pressure = pressure.toString();
+            this.rotate = rotate.toString();
+
+            tv_thermo.setText(thermometer);
+            tv_humidity.setText(humidity);
+            tv_pressure.setText(pressure);
+            tv_rotate.setText(rotate);
+
+            if (isChartInit) {
+                tv_log.append("\n" + "addEntry()");
+                addEntry(this.rotate, count);
+
+            }
 
         }
+
+
+
+    }
+
+    @Override
+    public void onThreadOtherValue(StringBuilder value) {
+
+        tv_log.append("\n" + value.toString());
 
     }
 
     @Override
     public void onStartReadData() {
 
+        isStart = true;
         img_signal.setBackgroundColor(Color.GREEN);
-        createChart();
-
+        tv_log.append("\n" + "onStartRead_S");
 
     }
 
@@ -326,6 +344,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             handler = new Handler();
             RxTxThread thread = new RxTxThread(handler, this, socket);
             thread.readStart();
+            tv_log.append("\n readStart()");
+            createChart();
+            tv_log.append("\n createChart()");
 
         }
 

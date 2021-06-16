@@ -35,25 +35,25 @@ public class RxTxThread {
 
     public RxTxThread(Handler handler, OnThreadListener listener, BluetoothSocket socket) {
 
-        this.socket = socket;
         this.listener = listener;
         this.logAddedListener = (OnLogAddedListener) listener;
         this.handler = handler;
-        connectInitialize();
-    }
 
-    private void connectInitialize() {
+        logAddedListener.onLogAdded("RxTxThread construct");
 
         try {
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
-
-            logAddedListener.onLogAdded(inputStream + ", " + outputStream);
-
         } catch(IOException e) {
-
+            logAddedListener.onLogAdded(inputStream + ", " + outputStream);
         }
+
+        logAddedListener.onLogAdded(inputStream + ", " + outputStream);
+
+
     }
+
+
 
     public void stopReadThread() {
 
@@ -86,7 +86,7 @@ public class RxTxThread {
 
                     while (!isInterrupted()) {
 
-                        if (inputStream.available() >= 0) {
+                        if (true) {
 
                             //n회차 loop때 length 10 이하의 배열을 InputStream에서 읽어온다.
                             byte[] bytes = new byte[1024];
@@ -98,87 +98,73 @@ public class RxTxThread {
                                 //i번째 byte가 아래에 해당할 때 특정 동작을 수행한다.
                                 byte b = bytes[i];
 
-                                if (b == 60) {
-                                    thermometer = new StringBuilder("");
-                                    humidity = new StringBuilder("");
-                                    pressure = new StringBuilder("");
-                                    rotate = new StringBuilder("");
+                                switch (b) {
 
-                                    colonCount = 0;
+                                    case 0x02 :
+                                        if (!isSignalGet) {
+                                            isSignalGet = true;
+                                            listener.onStartReadData();
+                                        }
+                                        break;
 
-                                    continue;
-                                } else if (b == 62) {
+                                    case 0x3C :
 
-                                    //가장중요. 그 중 보내온 마지막 문자가 감지되면
-                                    //Thread를 열었던 handler에게 Runnable 객체를 보낸다.
-                                    //그러면 알아서 MessageQueue에 보내줄 것이다.
-                                    //Queue에 들어간 Message는 Looper가 다시 Handler에게 보내서
-                                    //동작을 수행한다.
+                                        thermometer = new StringBuilder("");
+                                        humidity = new StringBuilder("");
+                                        pressure = new StringBuilder("");
+                                        rotate = new StringBuilder("");
+                                        colonCount = 0;
 
-                                    //만약 ":"이 특정값 미만이라면 부정확한 데이터이므로 무시.
-                                    if (colonCount == DATA_NUMBER) {
-                                        handler.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                listener.onThread(thermometer, humidity, pressure, rotate);
-                                                //Rotate add
-                                            }
-                                        });
-                                    }
+                                        break;
 
-                                } else if (b == 91) {
-                                    // : 이면 다음 값으로 넘어가야 함. 58
-                                    // [ 이면 다음 값. 91
-                                    colonCount++;
 
-                                } else if (b >= 48 && b <= 57) {
+                                    case 0x3E :
+
+                                        if (colonCount == DATA_NUMBER) {
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    listener.onThread(thermometer, humidity, pressure, rotate);
+                                                }
+                                            });
+
+                                        } else {
+                                            listener.onThreadOtherValue(thermometer.append(humidity.append(pressure.append(rotate))));
+                                        }
+
+                                        break;
+
+                                    case 0x3A :
+                                        colonCount++;
+                                        break;
+
+                                }
+
+                                if (b >= 0x30 && b <= 0x39) {
 
                                     switch (colonCount) {
 
-                                        case 1 : thermometer.append(asciiToString(b));
+                                        case 0:
+                                            thermometer.append(asciiToString(b));
                                             break;
 
-                                        case 2 : humidity.append(asciiToString(b));
+                                        case 1:
+                                            humidity.append(asciiToString(b));
                                             break;
 
-                                        case 3 : pressure.append(asciiToString(b));
+                                        case 2:
+                                            pressure.append(asciiToString(b));
                                             break;
 
-                                        case 4 : rotate.append(asciiToString(b));
+                                        case 3:
+                                            rotate.append(asciiToString(b));
                                             break;
 
-                                    }
-
-                                } else if (b == 83) {
-
-                                    listener.onStartReadData();
-
-                                    /*
-
-                                    if (isSignalGet) {
-
-                                        listener.onStartReadData();
-                                    }
-
-
-                                     */
-
-                                } else if (b == 2) {
-                                    isSignalGet = true;
-                                } else if (b == 3) {
-                                    isEndedSignalGet = true;
-                                } else if (b == 69) {
-                                    if (isEndedSignalGet) {
-                                        listener.onEndReadData();
                                     }
                                 }
 
-
                             }
 
-
-                        } else {
-                            connectInitialize();
                         }
 
                     }
@@ -203,9 +189,6 @@ public class RxTxThread {
                 super.run();
 
                 try {
-                    if (outputStream == null) {
-                        connectInitialize();
-                    }
 
                     outputStream.write(WRITE_DATA);
 
@@ -225,43 +208,42 @@ public class RxTxThread {
 
         switch (b) {
 
-            case 48 :
+            case 0x30 :
                 return "0";
 
 
-            case 49 :
+            case 0x31 :
                 return "1";
 
 
-            case 50 :
+            case 0x32 :
                 return "2";
 
-            case 51 :
+            case 0x33 :
                 return "3";
 
 
-            case 52 :
+            case 0x34 :
                 return "4";
 
 
-            case 53 :
+            case 0x35 :
                 return "5";
 
 
-            case 54 :
+            case 0x36 :
                 return "6";
 
 
-            case 55 :
+            case 0x37 :
                 return "7";
 
 
-            case 56 :
+            case 0x38 :
                 return "8";
 
-            case 57 :
+            case 0x39 :
                 return "9";
-
 
 
         }
