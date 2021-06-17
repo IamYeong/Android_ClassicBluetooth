@@ -88,18 +88,22 @@ public class RxTxThread {
                     while (!isInterrupted()) {
 
                         //1Byte 를 Serial 통신으로 받더라도 아래 로직을 수행할 수 있어야 함.
-                            byte[] bytes = new byte[1];
-                            inputStream.read(bytes);
 
+                        //Byte stream 은 배열에 저장하고, 결과 int 값은 result 에 저장.
+                            byte[] bytes = new byte[1024];
+                            int result = inputStream.read(bytes);
+
+                            logAddedListener.onLogAdded("Bytes : " + bytes + ", result : " + result);
 
                             //Default value is 0!
-                            if (bytes[0] != 0) {
-
+                            if (result != -1) {
+                                //if(inputstream.availblae > 0 )
 
                                 for (int i = 0; i < bytes.length; i++) {
 
                                     //i번째 byte가 아래에 해당할 때 특정 동작을 수행한다.
                                     byte b = bytes[i];
+                                    logAddedListener.onLogAdded(b + "<< bytes[" + i + "]");
 
                                     switch (b) {
 
@@ -109,6 +113,12 @@ public class RxTxThread {
                                                 listener.onStartReadData();
                                             }
                                             break;
+
+                                        case 0x03 :
+                                            if (!isEndedSignalGet) {
+                                                isEndedSignalGet = true;
+                                                listener.onEndReadData();
+                                            }
 
                                         case 0x3C :
 

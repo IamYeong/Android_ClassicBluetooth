@@ -93,6 +93,8 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
         //acceptSocket();
         connectSocket();
+        createChart();
+        tv_log.append("\n createChart(), connectSocket()");
 
         btn_fvc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,6 +136,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
         connectThread = new ConnectThread(device, this, handler);
         connectThread.start();
+
 
         //acceptThread = new AcceptThread(device, this, handler);
         //acceptThread.start();
@@ -326,9 +329,15 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     public void onEndReadData() {
 
         txRxThread.stopReadThread();
+        chartThread.interrupt();
+        connectThread.cancel();
+
         img_signal.setBackgroundColor(Color.RED);
 
         btn_connect.setVisibility(View.VISIBLE);
+
+
+        //멈췄을 때의 반응 구현 필요 (*ex 결과창 보여주기)
 
     }
 
@@ -345,8 +354,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             RxTxThread thread = new RxTxThread(handler, this, socket);
             thread.readStart();
             tv_log.append("\n readStart()");
-            createChart();
-            tv_log.append("\n createChart()");
+
             
             //준비완료되면 데이터 보낼 수 있도록
             //thread.writeStart();
