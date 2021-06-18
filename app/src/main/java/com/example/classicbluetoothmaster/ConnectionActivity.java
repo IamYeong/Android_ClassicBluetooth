@@ -30,7 +30,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConnectionActivity extends AppCompatActivity implements OnThreadListener, OnLogAddedListener {
+public class ConnectionActivity extends AppCompatActivity implements OnLogAddedListener {
 
     private Handler handler;
     private Thread chartThread;
@@ -78,10 +78,41 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
                     tv_pressure.setText(trData.getPressure().toString());
                     tv_rotate.setText(trData.getRotate().toString());
 
-                    addEntry(trData.getRotate().toString(), count);
+                    if (isChartInit) {
+                        addEntry(trData.getRotate().toString(), count);
+                    }
 
                     break;
 
+                case RxTxThread.MESSAGE_WRITE :
+
+                    tv_log.append("\nWrite Success! : " + msg.arg1);
+
+                    break;
+
+                case RxTxThread.MESSAGE_START:
+                    isStart = true;
+                    img_signal.setBackgroundColor(Color.GREEN);
+                    tv_log.append("\n" + "onStartRead_S");
+                    break;
+
+
+                case RxTxThread.MESSAGE_END:
+                    txRxThread.stopReadThread();
+                    chartThread.interrupt();
+                    connectThread.cancel();
+
+                    img_signal.setBackgroundColor(Color.RED);
+
+                    btn_connect.setVisibility(View.VISIBLE);
+                    break;
+
+
+                case RxTxThread.MESSAGE_OTHER :
+
+                    tv_log.append("\n" + msg.arg1);
+
+                    break;
 
 
 
@@ -309,70 +340,6 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
     }
 
-    @Override
-    public void onThread(StringBuilder thermometer, StringBuilder humidity, StringBuilder pressure, StringBuilder rotate) {
-
-        //tv_log.append("\n" + "onThread()");
-        //tv_log.append("\n" + thermometer + ", " + humidity + ", " + pressure + ", " + rotate);
-
-        tv_log.append("\n" + "onThread()" + ", boolean is" + isStart);
-
-        if (isStart) {
-
-            this.thermometer = thermometer.toString();
-            this.humidity = humidity.toString();
-            this.pressure = pressure.toString();
-            this.rotate = rotate.toString();
-
-
-            tv_thermo.setText(thermometer);
-            tv_humidity.setText(humidity);
-            tv_pressure.setText(pressure);
-            tv_rotate.setText(rotate);
-
-            if (isChartInit) {
-                tv_log.append("\n" + "addEntry()");
-                addEntry(this.rotate, count);
-
-            }
-
-        }
-
-
-
-    }
-
-    @Override
-    public void onThreadOtherValue(StringBuilder value) {
-
-        tv_log.append("\n" + value.toString());
-
-    }
-
-    @Override
-    public void onStartReadData() {
-
-        isStart = true;
-        img_signal.setBackgroundColor(Color.GREEN);
-        tv_log.append("\n" + "onStartRead_S");
-
-    }
-
-    @Override
-    public void onEndReadData() {
-
-        txRxThread.stopReadThread();
-        chartThread.interrupt();
-        connectThread.cancel();
-
-        img_signal.setBackgroundColor(Color.RED);
-
-        btn_connect.setVisibility(View.VISIBLE);
-
-
-        //멈췄을 때의 반응 구현 필요 (*ex 결과창 보여주기)
-
-    }
 
     @Override
     public void onLogAdded(String log) {
@@ -389,6 +356,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             txRxThread = new RxTxThread(handlerCallback, this, socket);
             txRxThread.readStart();
 
+            //connectThread.cancel();
             
             //준비완료되면 데이터 보낼 수 있도록
             //thread.writeStart();

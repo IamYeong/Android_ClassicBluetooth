@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,6 +18,8 @@ public class RxTxThread {
     public final static int MESSAGE_DATA = 1;
     public final static int MESSAGE_START = 0;
     public final static int MESSAGE_END = 2;
+    public final static int MESSAGE_OTHER = 3;
+    public final static int MESSAGE_WRITE = 4;
 
     private final String TR_ACTION_START = "S";
 
@@ -26,7 +29,6 @@ public class RxTxThread {
     private BluetoothSocket socket;
     private InputStream inputStream;
     private OutputStream outputStream;
-    private OnThreadListener listener;
     private OnLogAddedListener logAddedListener;
 
     private boolean isSignalGet = false;
@@ -42,18 +44,16 @@ public class RxTxThread {
     private final int DATA_NUMBER = 4;
     private final byte WRITE_DATA = 66;
 
-    public RxTxThread(Handler handler, OnThreadListener listener, BluetoothSocket socket) {
+    public RxTxThread(Handler handler, OnLogAddedListener listener, BluetoothSocket socket) {
 
-        this.listener = listener;
-        this.logAddedListener = (OnLogAddedListener) listener;
+        this.logAddedListener = listener;
         this.handler = handler;
-
         logAddedListener.onLogAdded("RxTxThread construct");
 
         try {
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
-        } catch(IOException e) {
+        } catch (IOException e) {
             logAddedListener.onLogAdded(inputStream + ",Exception " + outputStream);
         }
 
@@ -61,7 +61,6 @@ public class RxTxThread {
 
 
     }
-
 
 
     public void stopReadThread() {
@@ -72,7 +71,7 @@ public class RxTxThread {
 
     }
 
-    public void stopWriteThread(){
+    public void stopWriteThread() {
 
         if (writeThread != null) {
             writeThread.interrupt();
@@ -83,6 +82,8 @@ public class RxTxThread {
 
     public void readStart() {
 
+        //ByteArrayInputStream
+
         logAddedListener.onLogAdded("readStart()");
 
         readThread = new Thread() {
@@ -91,78 +92,33 @@ public class RxTxThread {
             public void run() {
                 super.run();
 
-                while(!isInterrupted()) {
-
-                    byte[] bytes = new byte[1024];
+                while (!isInterrupted()) {
 
                     try {
 
-                        //실패
-                        //int result = bufferedInputStream.read(bytes);
+                        if (inputStream.available() > 0) {
 
-                        Thread.sleep(100);
+                            byte[] bytes = new byte[1024];
+                            inputStream.read(bytes);
 
-                        thermometer = new StringBuilder();
-                        humidity = new StringBuilder();
-                        pressure = new StringBuilder();
-                        rotate = new StringBuilder();
+                            for (int i = 0; i < bytes.length; i++) {
 
-                        thermometer.append("30");
-                        humidity.append("40");
-                        pressure.append("998");
-                        rotate.append("5");
-
-                        Message msg = new Message();
-                        msg.what = MESSAGE_DATA;
-                        msg.obj = new TRData(thermometer, humidity, pressure, rotate);
-                        handler.sendMessage(msg);
-
-
-                    } catch (Exception e) {
-
-                    }
-
-                }
-
-                /*
-                try {
-                    //Thread 가 살아있다면 일단 loop실행
-                    while (!isInterrupted()) {
-
-                        //1Byte 를 Serial 통신으로 받더라도 아래 로직을 수행할 수 있어야 함.
-
-                        //Byte stream 은 배열에 저장하고, 결과 int 값은 result 에 저장.
-                        byte[] bytes = new byte[1024];
-                        int result;
-
-                        result = inputStream.read(bytes);
-                        logAddedListener.onLogAdded("Bytes : " + bytes + ", result : " + result);
-
-                        //Default value is 0!
-                        if (result != -1) {
-
-                            for (int i = 0; i < result; i++) {
-
-                                //i번째 byte가 아래에 해당할 때 특정 동작을 수행한다.
                                 byte b = bytes[i];
-                                logAddedListener.onLogAdded(b + "<< bytes[" + i + "]");
 
                                 switch (b) {
 
                                     case 2:
                                         if (!isSignalGet) {
                                             isSignalGet = true;
-                                            listener.onStartReadData();
                                         }
                                         break;
 
                                     case 3:
                                         if (!isEndedSignalGet) {
                                             isEndedSignalGet = true;
-                                            listener.onEndReadData();
                                         }
 
-                                    case 60 :
+                                    case 60:
 
                                         thermometer = new StringBuilder("");
                                         humidity = new StringBuilder("");
@@ -173,23 +129,36 @@ public class RxTxThread {
                                         break;
 
 
-                                    case 62 :
+                                    case 62:
 
                                         if (colonCount == DATA_NUMBER) {
                                             handler.post(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    listener.onThread(thermometer, humidity, pressure, rotate);
+
+                                                    Message msgOther = new Message();
+                                                    msgOther.what = MESSAGE_OTHER;
+
+                                                    thermometer = new StringBuilder();
+
+                                                    for (int i = 0; i < bytes.length; i++) {
+
+                                                        thermometer.append(bytes[i]);
+
+                                                    }
+
+                                                    msgOther.arg1 = Integer.parseInt(thermometer.toString());
+                                                    handler.sendMessage(msgOther);
                                                 }
                                             });
 
                                         } else {
-                                            listener.onThreadOtherValue(thermometer.append(humidity.append(pressure.append(rotate))));
+
                                         }
 
                                         break;
 
-                                    case 58 :
+                                    case 58:
                                         colonCount++;
                                         break;
 
@@ -221,19 +190,18 @@ public class RxTxThread {
                             }
                         }
 
-                    }
+                    } catch(Exception e) {
 
-                } catch(Exception e) {
+                    }
 
                 }
 
-                 */
-
             }
+
+
         };
 
         readThread.start();
-
     }
 
     public void writeStart() {
@@ -248,8 +216,18 @@ public class RxTxThread {
 
                     outputStream.write(WRITE_DATA);
 
+                    Message message = new Message();
+                    message.what = MESSAGE_WRITE;
+                    message.arg1 = WRITE_DATA;
+                    handler.sendMessage(message);
+
                 } catch(IOException e) {
-                    listener.onEndReadData();
+
+                    Message messageEND = new Message();
+                    messageEND.what = MESSAGE_END;
+                    handler.sendMessage(messageEND);
+
+
                 }
 
             }
@@ -307,4 +285,5 @@ public class RxTxThread {
         return "NULL";
 
     }
+
 }

@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.os.Build;
 import android.os.Handler;
 
 import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
@@ -54,16 +55,30 @@ public class ConnectThread extends Thread {
             //socket = createInsecureSocket(device);
             //socket = device.createRfcommSocketToServiceRecord(TR_UUID);
 
-            socket = device.createInsecureRfcommSocketToServiceRecord(TR_UUID);
-
+            //socket = device.createInsecureRfcommSocketToServiceRecord(TR_UUID);
+            socket = createInsecureSocket(device);
             socket.connect();
-            socket.close();
+
 
             //socket은 내부적으로 connect 가 완료되면 필드에 인풋/아웃풋 스트림을 저장함.
 
-        } catch(IOException e) {
+        if (isConnectingSuccess) {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    listener.onLogAdded(SOCKET_CONNECT_SUCCESS);
+                    listener.onLogAdded(device.getName() + "\n" + device.getAddress());
+                }
+            });
+        }
+
+        } catch(Exception e) {
 
             isConnectingSuccess = false;
+
+            if (socket != null) {
+                cancel();
+            }
 
             handler.post(new Runnable() {
                 @Override
@@ -74,27 +89,24 @@ public class ConnectThread extends Thread {
 
         }
 
-        if (isConnectingSuccess) {
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
-                    listener.onLogAdded(SOCKET_CONNECT_SUCCESS);
-                }
-            });
-        }
-
 
     }
 
-    private BluetoothSocket createInsecureSocket(BluetoothDevice mDevice) {
+    private BluetoothSocket createInsecureSocket(BluetoothDevice mDevice) throws IOException {
 
-        try {
-            BluetoothSocket socket = (BluetoothSocket) mDevice.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", int.class).invoke(mDevice, 1);
-        } catch(Exception e) {
+        if (Build.VERSION.SDK_INT >= 10) {
+
+            try {
+                final Method m = mDevice.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", new Class[] {UUID.class});
+                return (BluetoothSocket) m.invoke(device, TR_UUID);
+            } catch(Exception e) {
+
+            }
 
         }
 
-        return socket;
+        return mDevice.createRfcommSocketToServiceRecord(TR_UUID);
+
 
     }
 
