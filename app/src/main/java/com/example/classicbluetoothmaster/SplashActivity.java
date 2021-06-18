@@ -20,7 +20,7 @@ import java.util.Set;
 
 public class SplashActivity extends AppCompatActivity implements OnDeviceFindListener {
 
-    private TextView tv_log;
+    private TextView tv_log, tv_version;
     private Button btn_signIn, btn_signUp, btn_restart;
     //private BluetoothClassicScanner classicScanner;
 
@@ -41,6 +41,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
     private IntentFilter intentFilter;
     private boolean scanning = false;
     private boolean findDevice = false;
+    private String version = "v7.4";
 
     //Classic scanner field
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -85,6 +86,9 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        tv_version = findViewById(R.id.tv_version);
+        tv_version.setText(version);
 
         tv_log = findViewById(R.id.tv_log_splash);
         tv_log.setText("log : ");
