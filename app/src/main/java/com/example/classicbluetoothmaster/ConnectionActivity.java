@@ -59,6 +59,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     private BluetoothDevice device;
 
     private RxTxThread txRxThread;
+    private TRData trData;
 
     private Paint paint;
     private Path path;
@@ -67,8 +68,24 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
         @Override
         public boolean handleMessage(@NonNull Message msg) {
 
+            switch(msg.what) {
 
-            tv_log.append("\n" + msg.what);
+                case RxTxThread.MESSAGE_DATA :
+
+                    trData = (TRData) msg.obj;
+                    tv_thermo.setText(trData.getThermometer().toString());
+                    tv_humidity.setText(trData.getHumidity().toString());
+                    tv_pressure.setText(trData.getPressure().toString());
+                    tv_rotate.setText(trData.getRotate().toString());
+
+                    addEntry(trData.getRotate().toString(), count);
+
+                    break;
+
+
+
+
+            }
 
 
             return false;
@@ -369,8 +386,8 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             tv_log.append("\n" + socket.toString());
 
             //handler = new Handler();
-            RxTxThread thread = new RxTxThread(handlerCallback, this, socket);
-            thread.readStart();
+            txRxThread = new RxTxThread(handlerCallback, this, socket);
+            txRxThread.readStart();
 
             
             //준비완료되면 데이터 보낼 수 있도록

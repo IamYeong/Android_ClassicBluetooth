@@ -13,6 +13,11 @@ import java.util.ArrayList;
 
 public class RxTxThread {
 
+    //Message.what Constant
+    public final static int MESSAGE_DATA = 1;
+    public final static int MESSAGE_START = 0;
+    public final static int MESSAGE_END = 2;
+
     private final String TR_ACTION_START = "S";
 
     private Thread readThread, writeThread;
@@ -89,15 +94,27 @@ public class RxTxThread {
                 while(!isInterrupted()) {
 
                     byte[] bytes = new byte[1024];
-                    bufferedInputStream = new BufferedInputStream(inputStream);
-                    thermometer = new StringBuilder();
 
                     try {
 
-                        int result = bufferedInputStream.read(bytes);
+                        //실패
+                        //int result = bufferedInputStream.read(bytes);
+
+                        Thread.sleep(100);
+
+                        thermometer = new StringBuilder();
+                        humidity = new StringBuilder();
+                        pressure = new StringBuilder();
+                        rotate = new StringBuilder();
+
+                        thermometer.append("30");
+                        humidity.append("40");
+                        pressure.append("998");
+                        rotate.append("5");
 
                         Message msg = new Message();
-                        msg.what = result;
+                        msg.what = MESSAGE_DATA;
+                        msg.obj = new TRData(thermometer, humidity, pressure, rotate);
                         handler.sendMessage(msg);
 
 
