@@ -62,6 +62,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
 
                     //device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(NEW_MAC_ADDRESS);
 
+                    findDevice = true;
                     Toast.makeText(context, name + "과 연결", Toast.LENGTH_SHORT).show();
 
                     signInIntent = new Intent(SplashActivity.this, MainActivity.class);
@@ -69,6 +70,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
 
                     btn_signIn.setVisibility(View.VISIBLE);
                     btn_signUp.setVisibility(View.VISIBLE);
+                    btn_restart.setVisibility(View.INVISIBLE);
 
                     classicScanner.stopScan();
 
@@ -223,6 +225,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
     @Override
     public void onDeviceFind(BluetoothDevice device) {
 
+        findDevice = true;
         Toast.makeText(this, device.getName() + " 과 연결", Toast.LENGTH_SHORT).show();
 
         signInIntent = new Intent(SplashActivity.this, MainActivity.class);

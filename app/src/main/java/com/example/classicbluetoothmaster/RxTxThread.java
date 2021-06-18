@@ -3,16 +3,20 @@ package com.example.classicbluetoothmaster;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
+import android.os.Message;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 public class RxTxThread {
 
     private final String TR_ACTION_START = "S";
 
     private Thread readThread, writeThread;
+    private BufferedInputStream bufferedInputStream;
 
     private BluetoothSocket socket;
     private InputStream inputStream;
@@ -45,7 +49,7 @@ public class RxTxThread {
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
         } catch(IOException e) {
-            logAddedListener.onLogAdded(inputStream + ", " + outputStream);
+            logAddedListener.onLogAdded(inputStream + ",Exception " + outputStream);
         }
 
         logAddedListener.onLogAdded(inputStream + ", " + outputStream);
@@ -82,110 +86,131 @@ public class RxTxThread {
             public void run() {
                 super.run();
 
-                try {
+                while(!isInterrupted()) {
 
+                    byte[] bytes = new byte[1024];
+                    bufferedInputStream = new BufferedInputStream(inputStream);
+                    thermometer = new StringBuilder();
+
+                    try {
+
+                        int result = bufferedInputStream.read(bytes);
+
+                        Message msg = new Message();
+                        msg.what = result;
+                        handler.sendMessage(msg);
+
+
+                    } catch (Exception e) {
+
+                    }
+
+                }
+
+                /*
+                try {
                     //Thread 가 살아있다면 일단 loop실행
                     while (!isInterrupted()) {
 
                         //1Byte 를 Serial 통신으로 받더라도 아래 로직을 수행할 수 있어야 함.
 
                         //Byte stream 은 배열에 저장하고, 결과 int 값은 result 에 저장.
-                            byte[] bytes = new byte[1024];
-                            int result = inputStream.read(bytes);
+                        byte[] bytes = new byte[1024];
+                        int result;
 
-                            logAddedListener.onLogAdded("Bytes : " + bytes + ", result : " + result);
+                        result = inputStream.read(bytes);
+                        logAddedListener.onLogAdded("Bytes : " + bytes + ", result : " + result);
 
-                            //Default value is 0!
-                            if (result != -1) {
-                                //if(inputstream.availblae > 0 )
+                        //Default value is 0!
+                        if (result != -1) {
 
-                                for (int i = 0; i < bytes.length; i++) {
+                            for (int i = 0; i < result; i++) {
 
-                                    //i번째 byte가 아래에 해당할 때 특정 동작을 수행한다.
-                                    byte b = bytes[i];
-                                    logAddedListener.onLogAdded(b + "<< bytes[" + i + "]");
+                                //i번째 byte가 아래에 해당할 때 특정 동작을 수행한다.
+                                byte b = bytes[i];
+                                logAddedListener.onLogAdded(b + "<< bytes[" + i + "]");
 
-                                    switch (b) {
+                                switch (b) {
 
-                                        case 0x02 :
-                                            if (!isSignalGet) {
-                                                isSignalGet = true;
-                                                listener.onStartReadData();
-                                            }
-                                            break;
-
-                                        case 0x03 :
-                                            if (!isEndedSignalGet) {
-                                                isEndedSignalGet = true;
-                                                listener.onEndReadData();
-                                            }
-
-                                        case 0x3C :
-
-                                            thermometer = new StringBuilder("");
-                                            humidity = new StringBuilder("");
-                                            pressure = new StringBuilder("");
-                                            rotate = new StringBuilder("");
-                                            colonCount = 0;
-
-                                            break;
-
-
-                                        case 0x3E :
-
-                                            if (colonCount == DATA_NUMBER) {
-                                                handler.post(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        listener.onThread(thermometer, humidity, pressure, rotate);
-                                                    }
-                                                });
-
-                                            } else {
-                                                listener.onThreadOtherValue(thermometer.append(humidity.append(pressure.append(rotate))));
-                                            }
-
-                                            break;
-
-                                        case 0x3A :
-                                            colonCount++;
-                                            break;
-
-                                    }
-
-                                    if (b >= 0x30 && b <= 0x39) {
-
-                                        switch (colonCount) {
-
-                                            case 0:
-                                                thermometer.append(asciiToString(b));
-                                                break;
-
-                                            case 1:
-                                                humidity.append(asciiToString(b));
-                                                break;
-
-                                            case 2:
-                                                pressure.append(asciiToString(b));
-                                                break;
-
-                                            case 3:
-                                                rotate.append(asciiToString(b));
-                                                break;
-
+                                    case 2:
+                                        if (!isSignalGet) {
+                                            isSignalGet = true;
+                                            listener.onStartReadData();
                                         }
-                                    }
+                                        break;
+
+                                    case 3:
+                                        if (!isEndedSignalGet) {
+                                            isEndedSignalGet = true;
+                                            listener.onEndReadData();
+                                        }
+
+                                    case 60 :
+
+                                        thermometer = new StringBuilder("");
+                                        humidity = new StringBuilder("");
+                                        pressure = new StringBuilder("");
+                                        rotate = new StringBuilder("");
+                                        colonCount = 0;
+
+                                        break;
+
+
+                                    case 62 :
+
+                                        if (colonCount == DATA_NUMBER) {
+                                            handler.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    listener.onThread(thermometer, humidity, pressure, rotate);
+                                                }
+                                            });
+
+                                        } else {
+                                            listener.onThreadOtherValue(thermometer.append(humidity.append(pressure.append(rotate))));
+                                        }
+
+                                        break;
+
+                                    case 58 :
+                                        colonCount++;
+                                        break;
 
                                 }
-                            }
-                            //InputStream에서 읽어온 byte 배열을 다시 한 번 loop하며
 
+                                if (b >= 48 && b <= 57) {
+
+                                    switch (colonCount) {
+
+                                        case 0:
+                                            thermometer.append(asciiToString(b));
+                                            break;
+
+                                        case 1:
+                                            humidity.append(asciiToString(b));
+                                            break;
+
+                                        case 2:
+                                            pressure.append(asciiToString(b));
+                                            break;
+
+                                        case 3:
+                                            rotate.append(asciiToString(b));
+                                            break;
+
+                                    }
+                                }
+
+                            }
                         }
 
+                    }
 
                 } catch(Exception e) {
-                    currentThread().interrupt();
+
                 }
+
+                 */
 
             }
         };
@@ -222,30 +247,30 @@ public class RxTxThread {
 
         switch (b) {
 
-            case 0x30 :
+            case 48 :
                 return "0";
 
 
-            case 0x31 :
+            case 49 :
                 return "1";
 
 
-            case 0x32 :
+            case 50 :
                 return "2";
 
-            case 0x33 :
+            case 51 :
                 return "3";
 
 
-            case 0x34 :
+            case 52 :
                 return "4";
 
 
-            case 0x35 :
+            case 0x53 :
                 return "5";
 
 
-            case 0x36 :
+            case 0x54 :
                 return "6";
 
 

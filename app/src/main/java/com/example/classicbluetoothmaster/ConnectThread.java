@@ -22,6 +22,7 @@ public class ConnectThread extends Thread {
 
     private boolean isConnectingSuccess = true;
 
+    public static String SOCKET_CONNECT_SUCCESS = "tr.iamyeong.socket_connect_success";
     public static String SOCKET_CREATE_FAIL = "tr.iamyeong.socket_create_fail";
     public static String SOCKET_CONNECT_FAIL = "tr.iamyeong.socket_connect_fail";
     public static String SOCKET_CLOSE_FAIL = "tr.iamyeong.socket_close_fail";
@@ -44,14 +45,21 @@ public class ConnectThread extends Thread {
 
     @Override
     public void run() {
-        super.run();
+        //super.run();
 
         try {
 
             device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(MAC_ADDRESS);
+            //socket = device.createInsecureRfcommSocketToServiceRecord(TR_UUID);
+            //socket = createInsecureSocket(device);
+            //socket = device.createRfcommSocketToServiceRecord(TR_UUID);
+
             socket = device.createInsecureRfcommSocketToServiceRecord(TR_UUID);
 
             socket.connect();
+            socket.close();
+
+            //socket은 내부적으로 connect 가 완료되면 필드에 인풋/아웃풋 스트림을 저장함.
 
         } catch(IOException e) {
 
@@ -70,11 +78,23 @@ public class ConnectThread extends Thread {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onLogAdded("SUCCESS");
+                    listener.onLogAdded(SOCKET_CONNECT_SUCCESS);
                 }
             });
         }
 
+
+    }
+
+    private BluetoothSocket createInsecureSocket(BluetoothDevice mDevice) {
+
+        try {
+            BluetoothSocket socket = (BluetoothSocket) mDevice.getClass().getMethod("createInsecureRfcommSocketToServiceRecord", int.class).invoke(mDevice, 1);
+        } catch(Exception e) {
+
+        }
+
+        return socket;
 
     }
 
@@ -85,7 +105,7 @@ public class ConnectThread extends Thread {
             socket.close();
 
         } catch(IOException e) {
-            listener.onLogAdded(SOCKET_CLOSE_FAIL);
+            listener.onLogAdded("Socket close()");
         }
 
 

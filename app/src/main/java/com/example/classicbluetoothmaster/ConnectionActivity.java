@@ -1,5 +1,6 @@
 package com.example.classicbluetoothmaster;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.bluetooth.BluetoothDevice;
@@ -10,6 +11,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -59,6 +62,18 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
 
     private Paint paint;
     private Path path;
+
+    private Handler handlerCallback = new Handler(Looper.myLooper(), new Handler.Callback() {
+        @Override
+        public boolean handleMessage(@NonNull Message msg) {
+
+
+            tv_log.append("\n" + msg.what);
+
+
+            return false;
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -292,6 +307,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
             this.pressure = pressure.toString();
             this.rotate = rotate.toString();
 
+
             tv_thermo.setText(thermometer);
             tv_humidity.setText(humidity);
             tv_pressure.setText(pressure);
@@ -344,16 +360,17 @@ public class ConnectionActivity extends AppCompatActivity implements OnThreadLis
     @Override
     public void onLogAdded(String log) {
 
-        if (log.equals("SUCCESS")) {
+        if (log.equals(ConnectThread.SOCKET_CONNECT_SUCCESS)) {
+
+            tv_log.append("\n" + log);
 
             tv_connecting.setVisibility(View.INVISIBLE);
             BluetoothSocket socket = connectThread.getSocket();
             tv_log.append("\n" + socket.toString());
 
-            handler = new Handler();
-            RxTxThread thread = new RxTxThread(handler, this, socket);
+            //handler = new Handler();
+            RxTxThread thread = new RxTxThread(handlerCallback, this, socket);
             thread.readStart();
-            tv_log.append("\n readStart()");
 
             
             //준비완료되면 데이터 보낼 수 있도록
