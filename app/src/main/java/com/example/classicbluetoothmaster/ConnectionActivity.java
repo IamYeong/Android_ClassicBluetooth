@@ -73,6 +73,10 @@ public class ConnectionActivity extends AppCompatActivity implements OnLogAddedL
                 case RxTxThread.MESSAGE_DATA :
 
                     trData = (TRData) msg.obj;
+
+                    tv_log.append("\n" + trData.getThermometer() + trData.getHumidity() + trData.getPressure() + trData.getRotate());
+
+                    /*
                     tv_thermo.setText(trData.getThermometer().toString());
                     tv_humidity.setText(trData.getHumidity().toString());
                     tv_pressure.setText(trData.getPressure().toString());
@@ -81,6 +85,8 @@ public class ConnectionActivity extends AppCompatActivity implements OnLogAddedL
                     if (isChartInit) {
                         addEntry(trData.getRotate().toString(), count);
                     }
+
+                     */
 
                     break;
 
@@ -114,10 +120,7 @@ public class ConnectionActivity extends AppCompatActivity implements OnLogAddedL
 
                     break;
 
-
-
             }
-
 
             return false;
         }
@@ -190,22 +193,6 @@ public class ConnectionActivity extends AppCompatActivity implements OnLogAddedL
 
     }
 
-    private void acceptSocket() {
-        btn_connect.setVisibility(View.INVISIBLE);
-        img_signal.setBackgroundColor(Color.WHITE);
-        tv_log.setVisibility(View.VISIBLE);
-
-        handler = new Handler();
-
-        connectThread = new ConnectThread(device, this, handler);
-        connectThread.start();
-
-
-        //acceptThread = new AcceptThread(device, this, handler);
-        //acceptThread.start();
-
-
-    }
 
 
     @Override

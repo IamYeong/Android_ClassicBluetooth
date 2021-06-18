@@ -34,10 +34,10 @@ public class RxTxThread {
     private boolean isSignalGet = false;
     private boolean isEndedSignalGet = false;
 
-    private StringBuilder thermometer;
-    private StringBuilder humidity;
-    private StringBuilder pressure;
-    private StringBuilder rotate;
+    private StringBuilder thermometer = new StringBuilder();
+    private StringBuilder humidity = new StringBuilder();
+    private StringBuilder pressure = new StringBuilder();
+    private StringBuilder rotate = new StringBuilder();
     private Handler handler;
 
     private int colonCount = 0;
@@ -96,7 +96,9 @@ public class RxTxThread {
 
                     try {
 
-                        if (inputStream.available() > 0) {
+                        int available = inputStream.available();
+
+                        if (available > 0) {
 
                             byte[] bytes = new byte[1024];
                             inputStream.read(bytes);
@@ -107,50 +109,55 @@ public class RxTxThread {
 
                                 switch (b) {
 
-                                    case 2:
+                                    //Start
+                                    //case 0x02 :
+                                    case 2 :
                                         if (!isSignalGet) {
                                             isSignalGet = true;
+
+                                            Message startMsg = new Message();
+                                            startMsg.what = MESSAGE_START;
+
+                                            handler.sendMessage(startMsg);
+
                                         }
                                         break;
 
-                                    case 3:
+                                    //End
+                                    //case 0x03 :
+                                    case 3 :
                                         if (!isEndedSignalGet) {
                                             isEndedSignalGet = true;
+
+                                            Message endMsg = new Message();
+                                            endMsg.what = MESSAGE_END;
+
+                                            handler.sendMessage(endMsg);
                                         }
 
-                                    case 60:
+                                    //"<"
+                                    //case 0x3C :
+                                    case 60 :
 
-                                        thermometer = new StringBuilder("");
-                                        humidity = new StringBuilder("");
-                                        pressure = new StringBuilder("");
-                                        rotate = new StringBuilder("");
+                                        thermometer = new StringBuilder();
+                                        humidity = new StringBuilder();
+                                        pressure = new StringBuilder();
+                                        rotate = new StringBuilder();
                                         colonCount = 0;
 
                                         break;
 
-
-                                    case 62:
+                                    //">"
+                                    //case 0x02 :
+                                    case 62 :
 
                                         if (colonCount == DATA_NUMBER) {
-                                            handler.post(new Runnable() {
-                                                @Override
-                                                public void run() {
 
-                                                    Message msgOther = new Message();
-                                                    msgOther.what = MESSAGE_OTHER;
+                                            Message msgOther = new Message();
+                                            msgOther.what = MESSAGE_DATA;
 
-                                                    thermometer = new StringBuilder();
-
-                                                    for (int i = 0; i < bytes.length; i++) {
-
-                                                        thermometer.append(bytes[i]);
-
-                                                    }
-
-                                                    msgOther.arg1 = Integer.parseInt(thermometer.toString());
-                                                    handler.sendMessage(msgOther);
-                                                }
-                                            });
+                                            msgOther.obj = new TRData(thermometer, humidity, pressure, rotate);
+                                            handler.sendMessage(msgOther);
 
                                         } else {
 
@@ -158,12 +165,16 @@ public class RxTxThread {
 
                                         break;
 
-                                    case 58:
+                                    //":"
+                                    //case 0x3A :
+                                    case 58 :
                                         colonCount++;
                                         break;
 
                                 }
 
+                                //0~9
+                                //if (b >= 0x30 && b <= 0x39) {
                                 if (b >= 48 && b <= 57) {
 
                                     switch (colonCount) {
@@ -191,6 +202,17 @@ public class RxTxThread {
                         }
 
                     } catch(Exception e) {
+
+                        currentThread().interrupt();
+
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                logAddedListener.onLogAdded(e + "");
+                            }
+                        });
+
+
 
                     }
 
@@ -221,10 +243,11 @@ public class RxTxThread {
                     message.arg1 = WRITE_DATA;
                     handler.sendMessage(message);
 
-                } catch(IOException e) {
+                } catch(Exception e) {
 
                     Message messageEND = new Message();
                     messageEND.what = MESSAGE_END;
+                    //messageEND.arg1 = Integer.parseInt(e + "");
                     handler.sendMessage(messageEND);
 
 
@@ -234,7 +257,6 @@ public class RxTxThread {
         };
 
         writeThread.start();
-
 
     }
 
@@ -261,28 +283,27 @@ public class RxTxThread {
                 return "4";
 
 
-            case 0x53 :
+            case 53 :
                 return "5";
 
 
-            case 0x54 :
+            case 54 :
                 return "6";
 
 
-            case 0x37 :
+            case 55 :
                 return "7";
 
 
-            case 0x38 :
+            case 56 :
                 return "8";
 
-            case 0x39 :
+            case 57 :
                 return "9";
-
 
         }
 
-        return "NULL";
+        return null;
 
     }
 
