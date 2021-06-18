@@ -41,7 +41,7 @@ public class SplashActivity extends AppCompatActivity implements OnDeviceFindLis
     private IntentFilter intentFilter;
     private boolean scanning = false;
     private boolean findDevice = false;
-    private String version = "v7.4";
+    private String version = "v7.5";
 
     //Classic scanner field
     private final BroadcastReceiver receiver = new BroadcastReceiver() {

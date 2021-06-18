@@ -74,9 +74,9 @@ public class ConnectionActivity extends AppCompatActivity implements OnLogAddedL
 
                     trData = (TRData) msg.obj;
 
-                    tv_log.append("\n" + trData.getThermometer() + trData.getHumidity() + trData.getPressure() + trData.getRotate());
+                    //tv_log.append("\n" + trData.getThermometer() + trData.getHumidity() + trData.getPressure() + trData.getRotate());
 
-                    /*
+
                     tv_thermo.setText(trData.getThermometer().toString());
                     tv_humidity.setText(trData.getHumidity().toString());
                     tv_pressure.setText(trData.getPressure().toString());
@@ -86,7 +86,6 @@ public class ConnectionActivity extends AppCompatActivity implements OnLogAddedL
                         addEntry(trData.getRotate().toString(), count);
                     }
 
-                     */
 
                     break;
 
